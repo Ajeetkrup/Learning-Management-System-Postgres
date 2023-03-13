@@ -1,6 +1,7 @@
 const pool = require('../config/postgres');
 
 module.exports.getUsers = function(req, res){
+    
     pool.query('SELECT * FROM users ORDER BY userid ASC', 
         (err, results) => {
             if (err) {
@@ -36,10 +37,14 @@ module.exports.create = function(req, res){
 }
 
 module.exports.update = function(req, res){
+    let yourDate = new Date()
+    let date = yourDate.toISOString().split('T')[0];
+    console.log(date);
+
     const id = parseInt(req.params.id);
     const { name, email, password } = req.body;
 
-    pool.query('UPDATE users SET name = $1, email = $2, password = $3 WHERE userid = $4', [name, email, password, id],
+    pool.query('UPDATE users SET name = $1, email = $2, password = $3, updated_at = $4 WHERE userid = $5', [name, email, password, date, id],
         (err, results) => {
             if (err) {
                 throw err;

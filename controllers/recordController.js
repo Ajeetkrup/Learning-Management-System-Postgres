@@ -35,10 +35,14 @@ module.exports.create = function(req, res){
 }
 
 module.exports.update = function(req, res){
+    let yourDate = new Date()
+    let date = yourDate.toISOString().split('T')[0];
+    console.log(date);
+
     const id = parseInt(req.params.id);
     const { bookid, userid, date_return, copies, transaction_id } = req.body;
 
-    pool.query('UPDATE records SET bookid = $1, userid = $2, date_return = $3, copies = $4, transaction_id = $5 WHERE recordid = $6', [bookid, userid, date_return, copies, transaction_id, id],
+    pool.query('UPDATE records SET bookid = $1, userid = $2, date_return = $3, copies = $4, transaction_id = $5, updated_at = $6 WHERE recordid = $7', [bookid, userid, date_return, copies, transaction_id, date, id],
         (err, results) => {
             if (err) {
                 throw err;

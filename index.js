@@ -16,7 +16,7 @@ app.listen(
             console.log(`The server is not running error: ${err}`);
         }
         else{
-            console.log(`The server is up and running at port ${port}`);
+            console.log(`The server is up and running at port ${port}.`);
         }
     }
 );
