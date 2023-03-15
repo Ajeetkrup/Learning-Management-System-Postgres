@@ -1,3 +1,11 @@
+ create table users(
+ userid serial primary key,
+ name varchar(30) default '',
+ email varchar(30) unique not null,
+ password varchar(30) not null,
+ token varchar(8000)
+ );
+
 create table books(
 bookid serial primary key,
 name varchar(30) not null,

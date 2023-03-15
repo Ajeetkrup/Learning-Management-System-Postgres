@@ -23,45 +23,62 @@ module.exports.getBookById = function(req, res){
 }
 
 module.exports.create = function(req, res){
-    console.log(req.body);
-    const { name, isbn, pages, price, author, copies, available, charges } = req.body;
+    if(req.user.role == 'librarian'){
+        console.log(req.body);
+        const { name, isbn, pages, price, author, copies, available, charges } = req.body;
 
-    pool.query('INSERT INTO books (name, isbn, pages, price, author, copies, available, charges ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [ name, isbn, pages, price, author, copies, available, charges], 
-        (err, results) => {
-            if (err){
-            throw err;
-            }
-            return res.status(201).send(`Book added with bookid: ${results.insertId}`);
-    });
+        pool.query('INSERT INTO books (name, isbn, pages, price, author, copies, available, charges ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [ name, isbn, pages, price, author, copies, available, charges], 
+            (err, results) => {
+                if (err){
+                throw err;
+                }
+
+                console.log(results.rows);
+                return res.status(201).send(`Book added with bookid: ${results.insertId}`);
+        });
+    }
+    else{
+        res.status(401).send('Unauthorized User')
+    }
 }
 
 module.exports.update = function(req, res){
-    let yourDate = new Date()
-    let date = yourDate.toISOString().split('T')[0];
-    console.log(date);
+    if(req.user.role == 'librarian'){
+        let yourDate = new Date()
+        let date = yourDate.toISOString().split('T')[0];
+        console.log(date);
 
-    const id = parseInt(req.params.id);
-    console.log(req.body);
-    const { name, isbn, pages, price, author, copies, available, charges } = req.body;
+        const id = parseInt(req.params.id);
+        console.log(req.body);
+        const { name, isbn, pages, price, author, copies, available, charges } = req.body;
 
-    pool.query('UPDATE books SET name=$1, isbn=$2, pages=$3, price=$4, author=$5, copies=$6, available=$7, charges = $8, updated_at = $9 WHERE bookid = $10', [ name, isbn, pages, price, author, copies, available, charges, date, id ],
-        (err, results) => {
-            if (err) {
-                throw err;
+        pool.query('UPDATE books SET name=$1, isbn=$2, pages=$3, price=$4, author=$5, copies=$6, available=$7, charges = $8, updated_at = $9 WHERE bookid = $10', [ name, isbn, pages, price, author, copies, available, charges, date, id ],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
+                return res.status(200).send(`Book modified with bookID: ${id}`);
             }
-            return res.status(200).send(`Book modified with bookID: ${id}`);
-        }
-    )
+        );
+    }
+    else{
+        res.status(401).send('Unauthorized User');
+    }
 }
 
 module.exports.delete = function(req, res){
-    const id = parseInt(req.params.id);
+    if(req.user.role == 'librarian'){
+        const id = parseInt(req.params.id);
 
-    pool.query('DELETE FROM books WHERE bookid = $1', [id], 
-        (err, results) => {
-            if (err) {
-                throw err;
-            }
-            return res.status(200).send(`Book deleted with bookid: ${id}`);
-    });
+        pool.query('DELETE FROM books WHERE bookid = $1', [id], 
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
+                return res.status(200).send(`Book deleted with bookid: ${id}`);
+        });
+    }
+    else{
+        res.status(401).send('Unauthorized User');
+    }
 }

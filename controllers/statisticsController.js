@@ -14,35 +14,76 @@ module.exports.getStatistics = async function(req, res){
 
     let results;
 
-    results = await pool.query('Select bookid, count(*) from records group by bookid order by count desc limit 1;');
-    let bookid = results.rows[0].bookid;
-    results = await pool.query('Select name from books where bookid = $1', [bookid]);
-    ans.highest_lent_book = results.rows[0].name;
+    try{
+        results = await pool.query('Select bookid, count(*) from records group by bookid order by count desc limit 1;');
+        let bookid = results.rows[0].bookid;
+        results = await pool.query('Select name from books where bookid = $1', [bookid]);
+        ans.highest_lent_book = results.rows[0].name;
 
-    results = await pool.query('Select userid, count(*) from records group by userid order by count desc limit 1;');
-    let userid = results.rows[0].userid;
-    results = await pool.query('Select name from users where userid = $1',[userid]);
-    ans.most_active_user = results.rows[0].name;
+    }
+    catch(err){
+        res.status(500).send('Internal server error.')
+    }
+    
+    try{
+        results = await pool.query('Select userid, count(*) from records group by userid order by count desc limit 1;');
+        let userid = results.rows[0].userid;
+        results = await pool.query('Select name from users where userid = $1',[userid]);
+        ans.most_active_user = results.rows[0].name;
+    }
+    catch(err){
+        res.status(500).send('Internal server error.')
+    }
 
-    results = await pool.query('select name , min(created_at) from books group by bookid order by min limit 1;');
-    ans.oldest_book = results.rows[0].name;
+    try{
+        results = await pool.query('select name , min(created_at) from books group by bookid order by min limit 1;');
+        ans.oldest_book = results.rows[0].name;
+    }
+    catch(err){
+        res.status(500).send('Internal server error.')
+    }
 
-    results = await pool.query('select name , max(created_at) from books group by bookid order by max desc limit 1;');
-    ans.newest_book = results.rows[0].name;
+    try{
+        results = await pool.query('select name , max(created_at) from books group by bookid order by max desc limit 1;');
+        ans.newest_book = results.rows[0].name;
+    }
+    catch(err){
+        res.status(500).send('Internal server error.')
+    }
 
-    results = await pool.query('Select bookid, count(*) from records group by bookid order by count limit 1;');
-    bookid = results.rows[0].bookid;
-    results = await pool.query('Select name from books where bookid = $1', [bookid]);
-    ans.most_available_book = results.rows[0].name;
+    try{
+        results = await pool.query('Select bookid, count(*) from records group by bookid order by count limit 1;');
+        let bookid = results.rows[0].bookid;
+        results = await pool.query('Select name from books where bookid = $1', [bookid]);
+        ans.most_available_book = results.rows[0].name;
+    }
+    catch(err){
+        res.status(500).send('Internal server error.')
+    }
 
-    results = await pool.query('Select count(*) as total_users from users;');
-    ans.total_users = results.rows[0].total_users;
+    try{
+        results = await pool.query('Select count(*) as total_users from users;');
+        ans.total_users = results.rows[0].total_users;
+    }
+    catch(err){
+        res.status(500).send('Internal server error.')
+    }
 
-    results = await pool.query('Select count(*) as total_books from books;');
-    ans.total_books = results.rows[0].total_books;
+    try{
+        results = await pool.query('Select count(*) as total_books from books;');
+        ans.total_books = results.rows[0].total_books;
+    }
+    catch(err){
+        res.status(500).send('Internal server error.')
+    }
 
-    results = await pool.query('Select sum(copies) as total_lent_books from records;');
-    ans.total_lent_books = results.rows[0].total_lent_books;
+    try{
+        results = await pool.query('Select sum(copies) as total_lent_books from records;');
+        ans.total_lent_books = results.rows[0].total_lent_books;
+    }
+    catch(err){
+        res.status(500).send('Internal server error.')
+    }
 
     return res.send(ans);
     // console.log(results.rows);
