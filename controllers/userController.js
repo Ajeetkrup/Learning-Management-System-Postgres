@@ -11,7 +11,8 @@ module.exports.register = async function(req, res){
     // our register logic goes here..
     try{
         //get user input
-        const { name, email, password, role } = req.body;
+        var { name, email, password, role } = req.body;
+        role = role.toLowerCase();
 
         //Validate user input
         if (!(email && password && name && role)) {
@@ -23,16 +24,16 @@ module.exports.register = async function(req, res){
         // Validate if user exist in our database
         try{
             const results = await pool.query('Select name from users where email = $1', [email]);
+
+            if(results.rows[0]){
+                return res.status(409).send("User Already Exist. Please Login");
+            }
         }
         catch(err){
             res.status(500).send('Internal server error.')
         }
         
         console.log(name.rows);
-
-        if(results.rows[0]){
-            return res.status(409).send("User Already Exist. Please Login");
-        }
 
         // let encryptedPassword = await bcrypt.hash(password, 10);
 
@@ -128,6 +129,100 @@ module.exports.login = async function(req, res){
     }
 }
 
+module.exports.accessToken = async function(req, res){
+    try{
+        const {email, password} = req.body;
+        console.log(req.body);
+        // Validate user input
+        if (!(email && password)) {
+            res.status(400).send("All input is required");
+        }
+
+        let user;
+        try{
+            user  = await pool.query('Select * from users where email = $1', [email]);
+            console.log(user.rows);
+        }
+        catch(err){
+            res.status(500).send('Internal server error.')
+        }
+
+        // console.log(password, user.rows[0].password);
+        let token;
+        if(user.rows[0].name && password === user.rows[0].password){
+            // Create token
+            token = jwt.sign(
+            {"userid":user.rows[0].userid, "role": user.rows[0].role},
+            secretKey,
+            {
+            expiresIn: "1h",
+            }
+            );
+
+            req.body.token = token;
+            // console.log('Token:',token);
+        }
+        else{
+            res.status(409).send('User not found! Please Register.');
+        }
+
+        return res.status(201).json({
+            "token":token
+        }
+        );
+    }
+    catch(err){
+        console.log(err);
+    }
+}
+
+module.exports.refreshToken = async function(req, res){
+    try{
+        const {email, password} = req.body;
+        console.log(req.body);
+        // Validate user input
+        if (!(email && password)) {
+            res.status(400).send("All input is required");
+        }
+
+        let user;
+        try{
+            user  = await pool.query('Select * from users where email = $1', [email]);
+            console.log(user.rows);
+        }
+        catch(err){
+            res.status(500).send('Internal server error.')
+        }
+
+        // console.log(password, user.rows[0].password);
+        let token;
+        if(user.rows[0].name && password === user.rows[0].password){
+            // Create token
+            token = jwt.sign(
+            {"userid":user.rows[0].userid, "role": user.rows[0].role},
+            secretKey,
+            {
+            expiresIn: "30d",
+            }
+            );
+
+            req.body.token = token;
+            // console.log('Token:',token);
+        }
+        else{
+            res.status(409).send('User not found! Please Register.');
+        }
+
+        return res.status(201).json({
+            "token":token
+        }
+        );
+    }
+    catch(err){
+        console.log(err);
+    }
+}
+
 module.exports.getUsers = function(req, res){
     console.log(req.user);
     if(req.user.role == 'librarian'){
@@ -159,15 +254,22 @@ module.exports.getUserById = function(req, res){
 
 module.exports.create = function(req, res){
     if(req.user.role == 'librarian'){
-        const { name, email, password, role } = req.body;
-        console.log(req.body);
-        pool.query('INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)', [name, email, password, role], 
-            (err, results) => {
-                if (err){
-                    throw err;
-                }
-                return res.status(201).send(`User added with userid: ${results.insertId}`);
-        });
+        var { name, email, password, role } = req.body;
+        role = role.toLowerCase();
+
+        if(name && email && password && role){
+            console.log(req.body);
+            pool.query('INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)', [name, email, password, role], 
+                (err, results) => {
+                    if (err){
+                        throw err;
+                    }
+                    return res.status(201).send(`User added with userid: ${results.insertId}`);
+            });
+        }
+        else{
+            return res.status(404).send('Please provide all inputs.');
+        }
     }
     else{
         res.status(401).send('Unauthorized User');
@@ -182,15 +284,47 @@ module.exports.update = function(req, res){
 
         const id = parseInt(req.params.id);
         const { name, email, password } = req.body;
+        // if(!(name && email && password)){
+        //     res.send('Please provide any inputs.')
+        // }
 
-        pool.query('UPDATE users SET name = $1, email = $2, password = $3, updated_at = $4 WHERE userid = $5', [name, email, password, date, id],
-            (err, results) => {
-                if (err) {
-                    throw err;
+        if(name || email || password){
+            if(name){
+                pool.query('UPDATE users SET name = $1, updated_at = $2 WHERE userid = $3', [name, date, id],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`User modified with userid: ${id}`);
                 }
-                return res.status(200).send(`User modified with userid: ${id}`);
+                );
             }
-        );
+            if(email){
+                pool.query('UPDATE users SET email = $1, updated_at = $2 WHERE userid = $3', [email, date, id],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`User modified with userid: ${id}`);
+                }
+                );
+            }
+            if(password){
+                pool.query('UPDATE users SET password = $1, updated_at = $2 WHERE userid = $3', [password, date, id],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`User modified with userid: ${id}`);
+                }
+                );
+            }
+
+            return res.status(200).send(`User modified with userid: ${id}`);
+        }
+        else{
+            return res.status(404).send('Please provide any inputs.')
+        }
     }
     else{
         res.status(401).send('Unauthorized User');

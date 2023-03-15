@@ -37,13 +37,18 @@ module.exports.create = function(req, res){
     if(req.user.role == 'librarian'){
         const { userid, mode_of_payment, amount } = req.body;
 
-        pool.query('INSERT INTO payments (userid, mode_of_payment, amount) VALUES ($1, $2, $3)', [userid, mode_of_payment, amount], 
+        if(userid && mode_of_payment && amount){
+            pool.query('INSERT INTO payments (userid, mode_of_payment, amount) VALUES ($1, $2, $3)', [userid, mode_of_payment, amount], 
             (err, results) => {
                 if (err){
                 throw err;
                 }
                 return res.status(201).send(`Payment added with ID: ${results.insertId}`);
-        });
+            });
+        }
+        else{
+            return res.status(404).send('Plz provide all inputs.');
+        }
     }
     else{
         res.status(401).send('Unauthorized User');
@@ -61,14 +66,43 @@ module.exports.update = function(req, res){
         console.log(req.body);
         const { userid, mode_of_payment, amount } = req.body;
 
-        pool.query('UPDATE payments SET userid = $1, mode_of_payment = $2, amount = $3, updated_at = $4 WHERE paymentid = $5', [userid, mode_of_payment, amount, date, id],
-            (err, results) => {
-                if (err) {
-                    throw err;
+        if(userid || mode_of_payment || amount){
+            if(userid){
+                pool.query('UPDATE payments SET userid = $1, updated_at = $2 WHERE paymentid = $3', [userid, date, id],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Payment modified with ID: ${id}`);
                 }
-                return res.status(200).send(`Payment modified with ID: ${id}`);
+                );
             }
-        );
+            if(mode_of_payment){
+                pool.query('UPDATE payments SET mode_of_payment = $1, updated_at = $2 WHERE paymentid = $3', [mode_of_payment, date, id],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Payment modified with ID: ${id}`);
+                }
+                );
+            }
+            if(amount){
+                pool.query('UPDATE payments SET amount = $1, updated_at = $2 WHERE paymentid = $3', [amount, date, id],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Payment modified with ID: ${id}`);
+                }
+                );
+            }
+
+            return res.status(200).send(`Payment modified with ID: ${id}`);
+        }
+        else{
+            return res.status(404).send('Plz provide any input.');
+        }
     }
     else{
         res.status(401).send('Unauthorized User');

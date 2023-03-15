@@ -27,7 +27,8 @@ module.exports.create = function(req, res){
         console.log(req.body);
         const { name, isbn, pages, price, author, copies, available, charges } = req.body;
 
-        pool.query('INSERT INTO books (name, isbn, pages, price, author, copies, available, charges ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [ name, isbn, pages, price, author, copies, available, charges], 
+        if(name && isbn && pages && price && author && copies && available && charges){
+            pool.query('INSERT INTO books (name, isbn, pages, price, author, copies, available, charges ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [ name, isbn, pages, price, author, copies, available, charges], 
             (err, results) => {
                 if (err){
                 throw err;
@@ -35,7 +36,11 @@ module.exports.create = function(req, res){
 
                 console.log(results.rows);
                 return res.status(201).send(`Book added with bookid: ${results.insertId}`);
-        });
+            });
+        }
+        else{
+            return res.status(404).send('Plz provide all inputs.');
+        }
     }
     else{
         res.status(401).send('Unauthorized User')
@@ -52,14 +57,93 @@ module.exports.update = function(req, res){
         console.log(req.body);
         const { name, isbn, pages, price, author, copies, available, charges } = req.body;
 
-        pool.query('UPDATE books SET name=$1, isbn=$2, pages=$3, price=$4, author=$5, copies=$6, available=$7, charges = $8, updated_at = $9 WHERE bookid = $10', [ name, isbn, pages, price, author, copies, available, charges, date, id ],
-            (err, results) => {
-                if (err) {
-                    throw err;
+        if(name || isbn || pages || price || author || copies || available || charges){
+            if(name){
+                pool.query('UPDATE books SET name=$1, updated_at = $2 WHERE bookid = $3', [ name, date, id ],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Book modified with bookID: ${id}`);
                 }
-                return res.status(200).send(`Book modified with bookID: ${id}`);
+                );
             }
-        );
+            if(isbn){
+                pool.query('UPDATE books SET isbn=$1, updated_at = $2 WHERE bookid = $3', [ isbn, date, id ],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Book modified with bookID: ${id}`);
+                }
+                );
+            }
+            if(pages){
+                pool.query('UPDATE books SET pages=$1, updated_at = $2 WHERE bookid = $3', [ pages, date, id ],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Book modified with bookID: ${id}`);
+                }
+                );
+            }
+            if(price){
+                pool.query('UPDATE books SET price=$1, updated_at = $2 WHERE bookid = $3', [ price, date, id ],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Book modified with bookID: ${id}`);
+                }
+                );
+            }
+            if(author){
+                pool.query('UPDATE books SET author=$1, updated_at = $2 WHERE bookid = $3', [ author, date, id ],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Book modified with bookID: ${id}`);
+                }
+                );
+            }
+            if(copies){
+                pool.query('UPDATE books SET copies=$1, updated_at = $2 WHERE bookid = $3', [ copies, date, id ],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Book modified with bookID: ${id}`);
+                }
+                );
+            }
+            if(available){
+                pool.query('UPDATE books SET available=$1, updated_at = $2 WHERE bookid = $3', [ available, date, id ],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Book modified with bookID: ${id}`);
+                }
+                );
+            }
+            if(charges){
+                pool.query('UPDATE books SET charges=$1, updated_at = $2 WHERE bookid = $3', [ charges, date, id ],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // return res.status(200).send(`Book modified with bookID: ${id}`);
+                }
+                );
+            }
+
+            return res.status(200).send(`Book modified with bookID: ${id}`);
+        }
+        else{
+            return res.status(404).send('Plz provide any inputs.');
+        }
     }
     else{
         res.status(401).send('Unauthorized User');
