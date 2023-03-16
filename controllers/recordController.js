@@ -57,7 +57,7 @@ module.exports.create = function(req, res){
     
 }
 
-module.exports.update = function(req, res){
+module.exports.update = async function(req, res){
     if(req.user.role == 'librarian'){
         let yourDate = new Date()
         let date = yourDate.toISOString().split('T')[0];
@@ -65,64 +65,93 @@ module.exports.update = function(req, res){
 
         const id = parseInt(req.params.id);
         const { bookid, userid, date_return, copies, transaction_id } = req.body;
+        if(!bookid && !userid && !date_return && !copies && !transaction_id){
+            return res.send('Plz provide any input.');
+        }
 
-        if(bookid || userid || date_return || copies || transaction_id){
-            if(bookid){
-                pool.query('UPDATE records SET bookid = $1, updated_at = $2 WHERE recordid = $3', [bookid, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`Record modified with recordid: ${id}`);
-                }
-                );
+        let query ='Update records set ';
+        const recordObj = req.body;
+        // console.log(arr);
+        let i=1;
+        for(let key in recordObj){
+            // console.log(`${key}:${arr[key]}`);
+            if(i == 1){
+                query += key + "='" + recordObj[key] + "'";
             }
-            if(userid){
-                pool.query('UPDATE records SET userid = $1, updated_at = $2 WHERE recordid = $3', [userid, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`Record modified with recordid: ${id}`);
-                }
-                );
+            else{
+                query += ',' + key + "='" + recordObj[key] + "'";
             }
-            if(date_return){
-                pool.query('UPDATE records SET date_return = $1, updated_at = $2 WHERE recordid = $3', [date_return, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`Record modified with recordid: ${id}`);
-                }
-                );
-            }
-            if(copies){
-                pool.query('UPDATE records SET copies = $1, updated_at = $2 WHERE recordid = $3', [copies, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`Record modified with recordid: ${id}`);
-                }
-                );
-            }
-            if(transaction_id){
-                pool.query('UPDATE records SET transaction_id = $1, updated_at = $2 WHERE recordid = $3', [transaction_id, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`Record modified with recordid: ${id}`);
-                }
-                );
-            }
+            i++;
+        }
+        query += " where recordid='"+ id + "';";
+        console.log(query);
 
+        let record;
+        try{
+            record = await pool.query(query);
             return res.status(200).send(`Record modified with recordid: ${id}`);
         }
-        else{
-            return res.status(404).send('Please provide any input.');
+        catch(err){
+            return res.status(500).send('Internal server error.')
         }
+
+        // if(bookid || userid || date_return || copies || transaction_id){
+        //     if(bookid){
+        //         pool.query('UPDATE records SET bookid = $1, updated_at = $2 WHERE recordid = $3', [bookid, date, id],
+        //         (err, results) => {
+        //             if (err) {
+        //                 throw err;
+        //             }
+        //             // return res.status(200).send(`Record modified with recordid: ${id}`);
+        //         }
+        //         );
+        //     }
+        //     if(userid){
+        //         pool.query('UPDATE records SET userid = $1, updated_at = $2 WHERE recordid = $3', [userid, date, id],
+        //         (err, results) => {
+        //             if (err) {
+        //                 throw err;
+        //             }
+        //             // return res.status(200).send(`Record modified with recordid: ${id}`);
+        //         }
+        //         );
+        //     }
+        //     if(date_return){
+        //         pool.query('UPDATE records SET date_return = $1, updated_at = $2 WHERE recordid = $3', [date_return, date, id],
+        //         (err, results) => {
+        //             if (err) {
+        //                 throw err;
+        //             }
+        //             // return res.status(200).send(`Record modified with recordid: ${id}`);
+        //         }
+        //         );
+        //     }
+        //     if(copies){
+        //         pool.query('UPDATE records SET copies = $1, updated_at = $2 WHERE recordid = $3', [copies, date, id],
+        //         (err, results) => {
+        //             if (err) {
+        //                 throw err;
+        //             }
+        //             // return res.status(200).send(`Record modified with recordid: ${id}`);
+        //         }
+        //         );
+        //     }
+        //     if(transaction_id){
+        //         pool.query('UPDATE records SET transaction_id = $1, updated_at = $2 WHERE recordid = $3', [transaction_id, date, id],
+        //         (err, results) => {
+        //             if (err) {
+        //                 throw err;
+        //             }
+        //             // return res.status(200).send(`Record modified with recordid: ${id}`);
+        //         }
+        //         );
+        //     }
+
+        //     return res.status(200).send(`Record modified with recordid: ${id}`);
+        // }
+        // else{
+        //     return res.status(404).send('Please provide any input.');
+        // }
     }
     else{
         res.status(401).send('Unauthorized User');

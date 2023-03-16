@@ -91,7 +91,7 @@ module.exports.login = async function(req, res){
             console.log(user.rows);
         }
         catch(err){
-            res.status(500).send('Internal server error.')
+            res.status(404).send('User not found. Plz provide correct email or kindly register.')
         }
 
         // console.log(password, user.rows[0].password);
@@ -110,7 +110,7 @@ module.exports.login = async function(req, res){
             // console.log('Token:',token);
         }
         else{
-            res.status(409).send('User not found! Please Register.');
+            res.status(404).send('Wrong Password.');
         }
 
         // save user token
@@ -276,59 +276,107 @@ module.exports.create = function(req, res){
     }
 }
 
-module.exports.update = function(req, res){
-    if(req.user.role == 'librarian'){
+module.exports.update = async function(req, res){
+    // if(req.user.role == 'librarian'){
         let yourDate = new Date()
         let date = yourDate.toISOString().split('T')[0];
-        console.log(date);
+        // console.log(date);
 
         const id = parseInt(req.params.id);
+        
         const { name, email, password } = req.body;
-        // if(!(name && email && password)){
-        //     res.send('Please provide any inputs.')
-        // }
+        if(!name && !email && !password){
+            return res.send('Please provide any inputs.')
+        }
 
-        if(name || email || password){
-            if(name){
-                pool.query('UPDATE users SET name = $1, updated_at = $2 WHERE userid = $3', [name, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`User modified with userid: ${id}`);
-                }
-                );
+        let query ='Update users set ';
+        const userObj = req.body;
+        // console.log(arr);
+        let i=1;
+        for(let key in userObj){
+            // console.log(`${key}:${arr[key]}`);
+            if(i == 1){
+                query += key + "='" + userObj[key] + "'";
             }
-            if(email){
-                pool.query('UPDATE users SET email = $1, updated_at = $2 WHERE userid = $3', [email, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`User modified with userid: ${id}`);
-                }
-                );
+            else{
+                query += ',' + key + "='" + userObj[key] + "'";
             }
-            if(password){
-                pool.query('UPDATE users SET password = $1, updated_at = $2 WHERE userid = $3', [password, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`User modified with userid: ${id}`);
-                }
-                );
-            }
+            i++;
+        }
+        query += " where userid='"+ id + "';";
+        console.log(query);
 
+
+        let user;
+        try{
+            user = await pool.query(query);
             return res.status(200).send(`User modified with userid: ${id}`);
         }
-        else{
-            return res.status(404).send('Please provide any inputs.')
+        catch(err){
+            return res.status(500).send('Internal server error.')
         }
-    }
-    else{
-        res.status(401).send('Unauthorized User');
-    }
+        
+        // var name1, email1, password1;
+        
+        // if(name){
+        //     name1 = name;
+        // }
+        // else{
+        //     name1 = user.rows[0].name;
+        // }
+        // if(email){
+        //     email1 = email;
+        // }
+        // else{
+        //     email1 = user.rows[0].email;
+        // }
+        // if(password){
+        //     password1 = password;
+        // }
+        // else{
+        //     password1 = user.rows[0].password;
+        // }
+        // if(name || email || password){
+            // if(name){
+            //     pool.query('UPDATE users SET name = $1, email = $2, password = $3, updated_at = $4 WHERE userid = $5', [name1, email1, password1, date, id],
+            //     (err, results) => {
+            //         if (err) {
+            //             throw err;
+            //         }
+            //         return res.status(200).send(`User modified with userid: ${id}`);
+            //     }
+            //     );
+            // }
+            // if(email){
+            //     pool.query('UPDATE users SET email = $1, updated_at = $2 WHERE userid = $3', [email, date, id],
+            //     (err, results) => {
+            //         if (err) {
+            //             throw err;
+            //         }
+            //         // return res.status(200).send(`User modified with userid: ${id}`);
+            //     }
+            //     );
+            // }
+            // if(password){
+            //     pool.query('UPDATE users SET password = $1, updated_at = $2 WHERE userid = $3', [password, date, id],
+            //     (err, results) => {
+            //         if (err) {
+            //             throw err;
+            //         }
+            //         // return res.status(200).send(`User modified with userid: ${id}`);
+            //     }
+            //     );
+            // }
+
+        //     return res.status(200).send(`User modified with userid: ${id}`);
+        // }
+        // else{
+        //     return res.status(404).send('Please provide any inputs.')
+        // }
+    // }
+    // else{
+    //     res.status(401).send('Unauthorized User');
+    // }
 }
 
 module.exports.delete = function(req, res){

@@ -55,7 +55,7 @@ module.exports.create = function(req, res){
     }
 }
 
-module.exports.update = function(req, res){
+module.exports.update = async function(req, res){
     if(req.user.role == 'librarian'){
         let yourDate = new Date()
         let date = yourDate.toISOString().split('T')[0];
@@ -65,44 +65,73 @@ module.exports.update = function(req, res){
         console.log(req.params);
         console.log(req.body);
         const { userid, mode_of_payment, amount } = req.body;
-
-        if(userid || mode_of_payment || amount){
-            if(userid){
-                pool.query('UPDATE payments SET userid = $1, updated_at = $2 WHERE paymentid = $3', [userid, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`Payment modified with ID: ${id}`);
-                }
-                );
-            }
-            if(mode_of_payment){
-                pool.query('UPDATE payments SET mode_of_payment = $1, updated_at = $2 WHERE paymentid = $3', [mode_of_payment, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`Payment modified with ID: ${id}`);
-                }
-                );
-            }
-            if(amount){
-                pool.query('UPDATE payments SET amount = $1, updated_at = $2 WHERE paymentid = $3', [amount, date, id],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    // return res.status(200).send(`Payment modified with ID: ${id}`);
-                }
-                );
-            }
-
-            return res.status(200).send(`Payment modified with ID: ${id}`);
+        if(!userid && !mode_of_payment && !amount){
+            return res.send('Plz provide any input.');
         }
-        else{
-            return res.status(404).send('Plz provide any input.');
+
+        let query ='Update payments set ';
+        const paymentObj = req.body;
+        // console.log(arr);
+        let i=1;
+        for(let key in paymentObj){
+            // console.log(`${key}:${arr[key]}`);
+            if(i == 1){
+                query += key + "='" + paymentObj[key] + "'";
+            }
+            else{
+                query += ',' + key + "='" + paymentObj[key] + "'";
+            }
+            i++;
         }
+        query += " where paymentid='"+ id + "';";
+        console.log(query);
+
+        let payment;
+        try{
+            payment = await pool.query(query);
+            return res.status(200).send(`User modified with userid: ${id}`);
+        }
+        catch(err){
+            return res.status(500).send('Internal server error.')
+        }
+
+        // if(userid || mode_of_payment || amount){
+        //     if(userid){
+        //         pool.query('UPDATE payments SET userid = $1, updated_at = $2 WHERE paymentid = $3', [userid, date, id],
+        //         (err, results) => {
+        //             if (err) {
+        //                 throw err;
+        //             }
+        //             // return res.status(200).send(`Payment modified with ID: ${id}`);
+        //         }
+        //         );
+        //     }
+        //     if(mode_of_payment){
+        //         pool.query('UPDATE payments SET mode_of_payment = $1, updated_at = $2 WHERE paymentid = $3', [mode_of_payment, date, id],
+        //         (err, results) => {
+        //             if (err) {
+        //                 throw err;
+        //             }
+        //             // return res.status(200).send(`Payment modified with ID: ${id}`);
+        //         }
+        //         );
+        //     }
+        //     if(amount){
+        //         pool.query('UPDATE payments SET amount = $1, updated_at = $2 WHERE paymentid = $3', [amount, date, id],
+        //         (err, results) => {
+        //             if (err) {
+        //                 throw err;
+        //             }
+        //             // return res.status(200).send(`Payment modified with ID: ${id}`);
+        //         }
+        //         );
+        //     }
+
+        //     return res.status(200).send(`Payment modified with ID: ${id}`);
+        // }
+        // else{
+        //     return res.status(404).send('Plz provide any input.');
+        // }
     }
     else{
         res.status(401).send('Unauthorized User');
