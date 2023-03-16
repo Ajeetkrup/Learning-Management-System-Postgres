@@ -110,7 +110,7 @@ module.exports.login = async function(req, res){
             // console.log('Token:',token);
         }
         else{
-            res.status(404).send('Wrong Password.');
+            res.status(400).send('Wrong Password.');
         }
 
         // save user token

@@ -22,7 +22,7 @@ module.exports.getStatistics = async function(req, res){
 
     }
     catch(err){
-        res.status(500).send('Internal server error.')
+        return res.status(500).send('Internal server error.')
     }
     
     try{
@@ -32,7 +32,7 @@ module.exports.getStatistics = async function(req, res){
         ans.most_active_user = results.rows[0].name;
     }
     catch(err){
-        res.status(500).send('Internal server error.')
+        return res.status(500).send('Internal server error.')
     }
 
     try{
@@ -40,7 +40,7 @@ module.exports.getStatistics = async function(req, res){
         ans.oldest_book = results.rows[0].name;
     }
     catch(err){
-        res.status(500).send('Internal server error.')
+        return res.status(500).send('Internal server error.')
     }
 
     try{
@@ -48,7 +48,7 @@ module.exports.getStatistics = async function(req, res){
         ans.newest_book = results.rows[0].name;
     }
     catch(err){
-        res.status(500).send('Internal server error.')
+        return res.status(500).send('Internal server error.')
     }
 
     try{
@@ -58,7 +58,7 @@ module.exports.getStatistics = async function(req, res){
         ans.most_available_book = results.rows[0].name;
     }
     catch(err){
-        res.status(500).send('Internal server error.')
+        return res.status(500).send('Internal server error.')
     }
 
     try{
@@ -66,7 +66,7 @@ module.exports.getStatistics = async function(req, res){
         ans.total_users = results.rows[0].total_users;
     }
     catch(err){
-        res.status(500).send('Internal server error.')
+        return res.status(500).send('Internal server error.')
     }
 
     try{
@@ -74,7 +74,7 @@ module.exports.getStatistics = async function(req, res){
         ans.total_books = results.rows[0].total_books;
     }
     catch(err){
-        res.status(500).send('Internal server error.')
+        return res.status(500).send('Internal server error.')
     }
 
     try{
@@ -82,7 +82,7 @@ module.exports.getStatistics = async function(req, res){
         ans.total_lent_books = results.rows[0].total_lent_books;
     }
     catch(err){
-        res.status(500).send('Internal server error.')
+        return res.status(500).send('Internal server error.')
     }
 
     return res.send(ans);

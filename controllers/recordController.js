@@ -34,9 +34,61 @@ module.exports.getRecordById = function(req, res){
     
 }
 
-module.exports.create = function(req, res){
+module.exports.create = async function(req, res){
     if(req.user.role == 'librarian'){
         const { bookid, userid, date_return, copies, transaction_id } = req.body;
+
+        let copiesAvl = 0;
+        let results;
+        try{
+            results = await pool.query('Select * from books where bookid = $1;', [bookid]);
+        }
+        catch(err){
+            return res.status(500).send('1 Internal Server Error.');
+        }
+
+    // console.log(bookArr);
+        let bookObj = results.rows[0];
+        // console.log(bookObj);
+        let recordArr;
+        let bookid1 = bookObj.bookid;
+
+        try{
+            const results = await pool.query('Select * from records where bookid = $1;', [bookid1]);
+            recordArr = results.rows;
+        }
+        catch(err){
+            return res.status(500).send('2 Internal server error.');
+        }
+        // console.log(bookid1, recordArr, recordArr.length);
+
+            if(recordArr){
+                for(let j=0;j<recordArr.length;j++){
+                    let recordObj = recordArr[j];
+                    // console.log(recordObj.date_return);
+                    let recordid = recordArr.recordid;
+
+                    let d1 = new Date();
+                    d1 = d1.toISOString().split('T')[0];
+                    d1 = new Date(d1).getTime();
+
+                    let d2 = new Date(recordObj.date_return).getTime();
+
+                    // console.log(d1, d2);
+                    if(d1 < d2){
+                        copiesAvl += recordObj.copies;
+                    }
+                }
+                // console.log('Before', copies);
+                copiesAvl = bookObj.copies - copiesAvl;
+                // console.log('After',copies)
+                
+            }
+        
+            // console.log(copies, copiesAvl);
+        if(copies > copiesAvl){
+            return res.status(400).send('Book number > available books. PLz provide correct book number.');
+        }
 
         if(bookid && userid && date_return && copies && transaction_id){
             pool.query('INSERT INTO records (bookid, userid, date_return, copies, transaction_id) VALUES ($1, $2, $3, $4, $5)', [bookid, userid, date_return, copies, transaction_id], 
@@ -54,7 +106,6 @@ module.exports.create = function(req, res){
     else{
         res.status(401).send('Unauthorized User');
     }
-    
 }
 
 module.exports.update = async function(req, res){
@@ -64,8 +115,8 @@ module.exports.update = async function(req, res){
         console.log(date);
 
         const id = parseInt(req.params.id);
-        const { bookid, userid, date_return, copies, transaction_id } = req.body;
-        if(!bookid && !userid && !date_return && !copies && !transaction_id){
+        const { bookid, userid, date_return, copies, transaction_id, actual_date_of_return } = req.body;
+        if(!bookid && !userid && !date_return && !copies && !transaction_id && !actual_date_of_return){
             return res.send('Plz provide any input.');
         }
 

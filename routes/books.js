@@ -6,6 +6,7 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/', auth, bookController.getBooks);
+router.get('/available', auth, bookController.userGetBooks);
 router.get('/:id', auth, bookController.getBookById);
 router.post('/create', auth, bookController.create);
 router.post('/update/:id', auth, bookController.update);
