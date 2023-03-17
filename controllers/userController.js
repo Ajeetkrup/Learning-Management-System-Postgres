@@ -1,5 +1,4 @@
 const pool = require('../config/postgres');
-const bcrypt = require('bcrypt');
 const jwt =  require('jsonwebtoken');
 
 
@@ -16,7 +15,7 @@ module.exports.register = async function(req, res){
 
         //Validate user input
         if (!(email && password && name && role)) {
-            res.status(400).send("Bad Request");
+            return res.status(400).send("Bad Request");
         }
 
         // console.log(name, email, password);
@@ -30,7 +29,7 @@ module.exports.register = async function(req, res){
             }
         }
         catch(err){
-            res.status(500).send('Internal server error.')
+            return res.status(500).send('Internal server error.')
         }
         
         console.log(name.rows);
@@ -44,7 +43,7 @@ module.exports.register = async function(req, res){
             user = await pool.query('Select * from users where email = $1', [email]);
         }
         catch(err){
-            res.status(500).send('Internal server error.')
+            return res.status(500).send('Internal server error.')
         }
       
         console.log('User created:', user.rows[0]);
@@ -66,7 +65,7 @@ module.exports.register = async function(req, res){
             user = await pool.query('Select * from users where email = $1', [email]);
         }
         catch(err){
-            res.status(500).send('Internal server error.')
+            return res.status(500).send('Internal server error.')
         }
         return res.status(201).json(user.rows[0]);
     }

@@ -44,7 +44,7 @@ module.exports.create = async function(req, res){
             results = await pool.query('Select * from books where bookid = $1;', [bookid]);
         }
         catch(err){
-            return res.status(500).send('1 Internal Server Error.');
+            return res.status(500).send('Internal Server Error.');
         }
 
     // console.log(bookArr);
@@ -58,7 +58,7 @@ module.exports.create = async function(req, res){
             recordArr = results.rows;
         }
         catch(err){
-            return res.status(500).send('2 Internal server error.');
+            return res.status(500).send('Internal server error.');
         }
         // console.log(bookid1, recordArr, recordArr.length);
 
@@ -87,7 +87,7 @@ module.exports.create = async function(req, res){
         
             // console.log(copies, copiesAvl);
         if(copies > copiesAvl){
-            return res.status(400).send('Book number > available books. PLz provide correct book number.');
+            return res.status(400).send('Required number of books not available.');
         }
 
         if(bookid && userid && date_return && copies && transaction_id){
