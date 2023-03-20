@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  node_lms_app:
+    # container_name: node_lms_app
+    build: .
+    # image: ajeetkrup/node_lms_app
+    ports:
+      - "8000:8000"
+    environment:
+      - PG_DB=lms
+      - PG_USER=me
+      - PG_PASSWORD=password
+      - PG_HOST=node_lms_db
+    depends_on:
+      - node_lms_db
+
+  node_lms_db:
+    # container_name: node_lms_db
+    image: postgres:15.2
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=lms
+      - POSTGRES_USER=me
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - node_lms_db_data:/var/lib/postgresql/data
+
+volumes:
+  node_lms_db_data: {}

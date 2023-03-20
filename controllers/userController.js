@@ -81,16 +81,19 @@ module.exports.login = async function(req, res){
         console.log(req.body);
         // Validate user input
         if (!(email && password)) {
-            res.status(400).send("All input is required");
+            return res.status(400).send("All input is required");
         }
 
         let user;
         try{
             user  = await pool.query('Select * from users where email = $1', [email]);
-            console.log(user.rows);
+            // console.log(user.rows);
+            if(!user.rows){
+                return res.status(404).send('User not found. Plz provide correct email or kindly register.')
+            }
         }
         catch(err){
-            res.status(404).send('User not found. Plz provide correct email or kindly register.')
+            res.status(500).send('Internal Server Error.')
         }
 
         // console.log(password, user.rows[0].password);
