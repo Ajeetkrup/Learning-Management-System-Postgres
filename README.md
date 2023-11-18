@@ -35,7 +35,7 @@ Follow these steps to run the application locally:
     npm start
     ```
 
-4. Access the application in your browser at `http://localhost:3000`
+4. Access the application in your browser at `http://localhost:8000`
 
 ## Docker Setup
 
@@ -55,16 +55,16 @@ To run the app with Docker, follow these steps:
     docker-compose up
     ```
 
-3. Access the application in your browser at `http://localhost:3000`
+3. Access the application in your browser at `http://localhost:8000`
 
 ## Configuration
 
-- The default port for the Node.js application is `3000`. You can change this by setting the `PORT` environment variable.
+- The default port for the Node.js application is `8000`. You can change this by setting the `PORT` environment variable.
 - MongoDB connection settings can be modified in the `docker-compose.yml` file or via environment variables.
 
 ## Project Structure
 
-- `app.js`: Entry point of the Node.js application.
+- `index.js`: Entry point of the Node.js application.
 - `routes/`: Contains route definitions.
 - `controllers/`: Holds the logic for route handling.
 - `models/`: Includes database models (if applicable).
